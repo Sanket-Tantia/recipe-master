@@ -1,0 +1,19 @@
+{
+    "name": "recipe-master",
+    "version": "1.0.0",
+    "description": "EDAMAM Recipt search implmentation for google actions",
+    "main": "recipe.js",
+    "dependencies": {
+        "actions-on-google": "^2.2.0",
+        "dialogflow": "^0.6.0",
+        "express": "^4.17.1",
+        "ngrok": "^3.2.5",
+        "request": "^2.88.0"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "node recipe.js"
+    },
+    "author": "Sanket Tantia",
+    "license": "ISC"
+}
