@@ -66,8 +66,11 @@ app.intent('getrecipe', async function(conv, { any }) {
     } else if (hits.length == 1) {
         singleRecipe = hits[0]
         conv.ask(`Here are your recipes.`);
+        var filtered_health_labels = singleRecipe.recipe.healthLabels.filter(function(value, index, arr) {
+            return value != 'Vegetarian';
+        });
         conv.ask(new BasicCard({
-            text: `Health Labels: ${singleRecipe.recipe.healthLabels.join(", ")}\nCalories: ${singleRecipe.recipe.calories}`, // Note the two spaces before '\n' required for
+            text: `Health Labels: ${filtered_health_labels.join(", ")}\nCalories: ${singleRecipe.recipe.calories}`, // Note the two spaces before '\n' required for
             // a line break to be rendered in the card.
             subtitle: `Source: ${singleRecipe.recipe.source}`,
             title: singleRecipe.recipe.label,
@@ -88,10 +91,13 @@ app.intent('getrecipe', async function(conv, { any }) {
         conv.ask(`Here are your recipes.`);
         carouselItems = []
         hits.forEach(eachRecipe => {
+            var filtered_health_labels = eachRecipe.recipe.healthLabels.filter(function(value, index, arr) {
+                return value != 'Vegetarian';
+            });
             carouselItems.push(new BrowseCarouselItem({
                 title: eachRecipe.recipe.label,
                 url: eachRecipe.recipe.url,
-                description: `Diet Labels: ${eachRecipe.recipe.healthLabels.join(", ")}\nCalories: ${eachRecipe.recipe.calories}`,
+                description: `Diet Labels: ${filtered_health_labels.join(", ")}\nCalories: ${eachRecipe.recipe.calories}`,
                 image: new Image({
                     url: eachRecipe.recipe.image,
                     alt: `Image for ${any}`,
