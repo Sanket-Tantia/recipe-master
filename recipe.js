@@ -82,7 +82,7 @@ app.intent('getrecipe', async function(conv, { any }) {
     } else if (hits.length == 1) {
         singleRecipe = hits[0]
         if (singleRecipe.recipe.healthLabels.includes('Alcohol-Cocktail')) {
-            conv.ask("Currently we do not serve requests which belong to Alocohol-cocktail category. Please try some other dish.")
+            conv.ask("Currently we do not serve requests which belong to Alcohol-cocktail category. Please try some other dish.")
             conv.ask(new Suggestions('Hakka noodles', 'Cheese cake', `Grilled chicken`, 'Sunny side up'));
         } else {
             conv.ask(`Here are your recipes.`);
@@ -113,7 +113,7 @@ app.intent('getrecipe', async function(conv, { any }) {
         var alcohol_cocktail_category = false;
         hits.forEach(eachRecipe => {
             if (eachRecipe.recipe.healthLabels.includes('Alcohol-Cocktail') && !alcohol_cocktail_category) {
-                conv.ask("Currently we do not serve requests which belong to Alocohol-cocktail category. Please try some other dish.")
+                conv.ask("Currently we do not serve requests which belong to Alcohol-cocktail category. Please try some other dish.")
                 conv.ask(new Suggestions('Hakka noodles', 'Cheese cake', `Grilled chicken`, 'Sunny side up'));
                 alcohol_cocktail_category = true;
             }
