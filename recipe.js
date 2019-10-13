@@ -53,7 +53,7 @@ app.intent('Default Welcome Intent', async function(conv) {
         // text: `Here's a simple response. ` +
         //     `Which response would you like to see next?`,
     }));
-    conv.ask(new Confirmation(new BasicCard({
+    conv.ask(new BasicCard({
         text: `Recipe Master includes alcohol & tobacco branded content for which Google requires age verification.\nAre you 21 years old?`, // Note the two spaces before '\n' required for
         // a line break to be rendered in the card.
         title: 'Age verification',
@@ -70,7 +70,7 @@ app.intent('Default Welcome Intent', async function(conv) {
             alt: 'Recipe Master',
         }),
         display: 'CROPPED',
-    })));
+    }));
 
     // conv.ask(new Confirmation('Google requires alcohol and tobacco branded contents to include age verification. Are you 21 years old?'));
     // conv.ask(`Hello! Welcome to Recipe Master! Tell me the dish name so that I can get you the recipes?`);
