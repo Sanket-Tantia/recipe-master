@@ -2,11 +2,13 @@ const {
     dialogflow,
     Suggestions,
     Permission,
+    Confirmation,
     BasicCard,
     Button,
     Image,
     BrowseCarouselItem,
-    BrowseCarousel
+    BrowseCarousel,
+    SimpleResponse
 } = require('actions-on-google');
 
 // Instantiate the Dialogflow client.
@@ -46,8 +48,34 @@ app.intent('Default Welcome Intent', async function(conv) {
     //     context: 'Hello! Welcome to Recipe Master! To assist you',
     //     permissions: 'AGE'
     // }));
-    conv.ask(`Hello! Welcome to Recipe Master! Tell me the dish name so that I can get you the recipes?`);
-    conv.ask(new Suggestions('Hakka noodles', 'Cheese cake', `Grilled chicken`, 'Sunny side up'));
+    conv.ask(new SimpleResponse({
+        speech: `Hello! Welcome to Recipe Master!`,
+        // text: `Here's a simple response. ` +
+        //     `Which response would you like to see next?`,
+    }));
+    conv.ask(new Confirmation(new BasicCard({
+        text: `Recipe Master includes alcohol & tobacco branded content for which Google requires age verification.\nAre you 21 years old?`, // Note the two spaces before '\n' required for
+        // a line break to be rendered in the card.
+        title: 'Age verification',
+        // subtitle: new Button({
+        //     title: 'Yes'
+        //         // url: 'https://assistant.google.com/',
+        // }),
+        // buttons: new Button({
+        //     title: 'Yes'
+        //         // url: 'https://assistant.google.com/',
+        // }),
+        image: new Image({
+            url: 'https://cliparts.zone/img/125125.jpg',
+            alt: 'Recipe Master',
+        }),
+        display: 'CROPPED',
+    })));
+
+    // conv.ask(new Confirmation('Google requires alcohol and tobacco branded contents to include age verification. Are you 21 years old?'));
+    // conv.ask(`Hello! Welcome to Recipe Master! Tell me the dish name so that I can get you the recipes?`);
+    // conv.ask(new Suggestions('Hakka noodles', 'Cheese cake', `Grilled chicken`, 'Sunny side up'));
+    conv.ask(new Suggestions('Yes', 'No'));
 });
 
 // app.intent('actions_intent_PERMISSION', (conv, params, permissionGranted) => {
@@ -59,6 +87,16 @@ app.intent('Default Welcome Intent', async function(conv) {
 //         conv.ask(new Suggestions('Hakka noodles', 'Cheese cake', `Grilled chicken`, 'Sunny side up'));
 //     }
 // });
+app.intent('actions_intent_CONFIRMATION', (conv, params, confirmationGranted) => {
+    if (confirmationGranted.toUpperCase() == 'YES' ||
+        confirmationGranted.toUpperCase() == 'SURE') {
+        conv.ask(`Thank you for confirming. Tell me the dish name so that I can get you the recipes?`);
+        conv.ask(new Suggestions('Hakka noodles', 'Cheese cake', `Grilled chicken`, 'Sunny side up'));
+    } else {
+        conv.close(`Sorry, Google requires you to be of 21 years of age to use Recipe Master.`);
+    }
+});
+
 
 app.intent('actions_intent_CANCEL', async function(conv) {
     conv.user.storage = {};
@@ -81,66 +119,53 @@ app.intent('getrecipe', async function(conv, { any }) {
 
     } else if (hits.length == 1) {
         singleRecipe = hits[0]
-        if (singleRecipe.recipe.healthLabels.includes('Alcohol-Cocktail')) {
-            conv.ask("Currently we do not serve requests which belong to Alcohol-cocktail category. Please try some other dish.")
-            conv.ask(new Suggestions('Hakka noodles', 'Cheese cake', `Grilled chicken`, 'Sunny side up'));
-        } else {
-            conv.ask(`Here are your recipes.`);
-            var filtered_health_labels = singleRecipe.recipe.healthLabels.filter(function(value, index, arr) {
-                return value != 'Vegetarian';
-            });
-            conv.ask(new BasicCard({
-                text: `Health Labels: ${filtered_health_labels.join(", ")}\nCalories: ${singleRecipe.recipe.calories}`, // Note the two spaces before '\n' required for
-                // a line break to be rendered in the card.
-                subtitle: `Source: ${singleRecipe.recipe.source}`,
-                title: singleRecipe.recipe.label,
-                buttons: new Button({
-                    title: `Full recipe`,
-                    url: singleRecipe.recipe.url,
-                }),
-                image: new Image({
-                    url: singleRecipe.recipe.image,
-                    alt: `Image for ${any}`,
-                }),
-                display: 'CROPPED',
-            }));
-            conv.ask('Which recipe would you like to see next? Enter bye to exit.');
-            conv.ask(new Suggestions('Hakka noodles', 'Cheese cake', `Grilled chicken`, 'Sunny side up'));
-        }
+        conv.ask(`Here are your recipes.`);
+        var filtered_health_labels = singleRecipe.recipe.healthLabels.filter(function(value, index, arr) {
+            return value != 'Vegetarian';
+        });
+        conv.ask(new BasicCard({
+            text: `Health Labels: ${filtered_health_labels.join(", ")}\nCalories: ${singleRecipe.recipe.calories}`, // Note the two spaces before '\n' required for
+            // a line break to be rendered in the card.
+            subtitle: `Source: ${singleRecipe.recipe.source}`,
+            title: singleRecipe.recipe.label,
+            buttons: new Button({
+                title: `Full recipe`,
+                url: singleRecipe.recipe.url,
+            }),
+            image: new Image({
+                url: singleRecipe.recipe.image,
+                alt: `Image for ${any}`,
+            }),
+            display: 'CROPPED',
+        }));
+        conv.ask('Which recipe would you like to see next? Enter bye to exit.');
+        conv.ask(new Suggestions('Hakka noodles', 'Cheese cake', `Grilled chicken`, 'Sunny side up'));
+
 
     } else {
-        carouselItems = []
-        var alcohol_cocktail_category = false;
+        carouselItems = [];
+        conv.ask(`Here are your recipes.`);
         hits.forEach(eachRecipe => {
-            if (eachRecipe.recipe.healthLabels.includes('Alcohol-Cocktail') && !alcohol_cocktail_category) {
-                conv.ask("Currently we do not serve requests which belong to Alcohol-cocktail category. Please try some other dish.")
-                conv.ask(new Suggestions('Hakka noodles', 'Cheese cake', `Grilled chicken`, 'Sunny side up'));
-                alcohol_cocktail_category = true;
-            }
-        });
-        if (!alcohol_cocktail_category) {
-            conv.ask(`Here are your recipes.`);
-            hits.forEach(eachRecipe => {
-                var filtered_health_labels = eachRecipe.recipe.healthLabels.filter(function(value, index, arr) {
-                    return value != 'Vegetarian';
-                });
-                carouselItems.push(new BrowseCarouselItem({
-                    title: eachRecipe.recipe.label,
-                    url: eachRecipe.recipe.url,
-                    description: `Diet Labels: ${filtered_health_labels.join(", ")}\nCalories: ${eachRecipe.recipe.calories}`,
-                    image: new Image({
-                        url: eachRecipe.recipe.image,
-                        alt: `Image for ${any}`,
-                    }),
-                    footer: `Source: ${eachRecipe.recipe.source}`,
-                }))
+            var filtered_health_labels = eachRecipe.recipe.healthLabels.filter(function(value, index, arr) {
+                return value != 'Vegetarian';
             });
-            conv.ask(new BrowseCarousel({
-                items: carouselItems,
-            }));
-            conv.ask('Which recipe would you like to see next? Enter bye to exit');
-            conv.ask(new Suggestions('Hakka noodles', 'Cheese cake', `Grilled chicken`, 'Sunny side up'));
-        }
+            carouselItems.push(new BrowseCarouselItem({
+                title: eachRecipe.recipe.label,
+                url: eachRecipe.recipe.url,
+                description: `Diet Labels: ${filtered_health_labels.join(", ")}\nCalories: ${eachRecipe.recipe.calories}`,
+                image: new Image({
+                    url: eachRecipe.recipe.image,
+                    alt: `Image for ${any}`,
+                }),
+                footer: `Source: ${eachRecipe.recipe.source}`,
+            }))
+        });
+        conv.ask(new BrowseCarousel({
+            items: carouselItems,
+        }));
+        conv.ask('Which recipe would you like to see next? Enter bye to exit');
+        conv.ask(new Suggestions('Hakka noodles', 'Cheese cake', `Grilled chicken`, 'Sunny side up'));
+
     }
 });
 
